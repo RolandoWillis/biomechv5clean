@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <base href="./">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css')}}" rel="stylesheet">
+  </head>
+  <body class="">
+    
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="h6">Choose the media type:</div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="flexRadioDefault" id="imageInput" checked>
+                            <label class="form-check-label" for="imageInput">
+                                Image
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="flexRadioDefault" id="videoInput">
+                            <label class="form-check-label" for="videoInput">
+                                Video Stream
+                            </label>
+                        </div>
+
+                        <form enctype="multipart/form-data" id="fileForm">
+                            <div class="custom-file mt-3">
+                                <input type="file" name="file" class="custom-file-input" id="inputFile" onchange="update_filepath()">
+                                <label class="custom-file-label" for="inputFile">Choose Input</label>
+                            </div>
+                        </form>
+                        <small>Filename: <span id="filepath"></span> </small>
+
+                        <button class="btn btn-block btn-success mt-3" onclick="start_processing()">
+                            Start
+                        </button>
+
+                        <!-- <button class="btn btn-block btn-danger mt-3" onclick="trigger_stop()">
+                            Stop
+                        </button> -->
+                    </div>
+                </div>
+
+
+                <div class="div mt-3">
+                    <div class="alert alert-primary alert-sm" role="alert" id="var1">
+                        Rapid Upper Limb Assessment Score will appear here.
+                    </div>
+    
+                    <div class="alert alert-primary alert-sm" role="alert" id="var2">
+                        Rapid Entire Body Score will appear here.
+                    </div>
+    
+                    <div class="alert alert-warning alert-sm" role="alert" id="var3">
+                        Posture result will appear here.
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <img src="" alt="" id="processedImg">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap.min.js')}}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.min.js')}}"></script>
+    
+    <script type="text/javascript">
+        var dataInterval = null;
+        
+        function start_processing()
+        {
+            start_interval();
+            var type = document.getElementById('videoInput').checked == true ? 0 : 1;
+
+            var formData = new FormData();
+            formData.append('file', $('#inputFile').get(0).files[0]);
+
+            $.ajax({
+                type: 'POST',
+                url: "/process-input?type=" + type,
+                data: formData,
+                processData: false, 
+                contentType: false, 
+                cache: false,
+                success: function(returnval) {
+                },
+                error: function(res) {
+                }
+            });
+
+        }
+
+        function start_interval() 
+        {
+            if (!dataInterval)
+                dataInterval = setInterval(function () { get_parameters() }, 500);
+        }
+
+        function get_parameters() 
+        {
+            $.get( "/get-parameters", function( data ) {
+                $( "#var1" ).html( data.var1 );
+                $( "#var2" ).html( data.var2 );
+                $( "#var3" ).html( data.var3 );
+                
+                console.log($("#processedImg").attr('src'));
+                
+                if (data.done) {
+                    clearInterval(dataInterval);
+                    dataInterval = null;
+                }
+
+                $("#processedImg").attr('src', data.im + "?" + new Date().getTime());
+            });
+        }
+
+        function update_filepath()
+        {
+            var filepath = document.getElementById("inputFile").files[0].name;
+            $("#filepath").html(filepath);
+        }
+
+        function trigger_stop()
+        {
+            stopManual = true;
+        }
+
+    </script>
+
+  
+
+  </body>
+
+</html>

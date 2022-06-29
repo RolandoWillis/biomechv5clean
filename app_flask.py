@@ -1,0 +1,70 @@
+from importlib.resources import path
+from flask import Flask, render_template, Response, jsonify, request, redirect
+import sys, os
+# from app import image_pose_estimation, video_pose_estimation
+# from helpers.input_helper import image_pose_estimation, video_pose_estimation
+import variables
+
+UPLOAD_FOLDER = './uploads'
+
+if getattr(sys, 'frozen', False):
+    template_folder = os.path.join(sys._MEIPASS, 'templates')
+    static_folder = os.path.join(sys._MEIPASS, 'static')
+    app = Flask(__name__, template_folder=template_folder, static_folder=static_folder)
+else:
+    app = Flask(__name__, static_url_path='/static',static_folder='static/')
+
+app.secret_key = 'BIO'
+
+@app.route("/")
+def index():
+    return render_template('index.html') 
+
+@app.route("/process-input", methods=['GET', 'POST'])
+def processInput():
+    variables.done = False
+    if request.method == 'POST':
+        input_type = int(request.args.get('type'))
+
+        file = request.files['file']
+
+        if file.filename == '':
+            print('No selected file')
+            return redirect(request.url)
+
+        if file :
+            filename = file.filename
+            fullname = os.path.join(UPLOAD_FOLDER, filename)
+            file.save(fullname)
+    
+        if (input_type == 0):
+            video_pose_estimation(fullname)
+        else :
+            image_pose_estimation(fullname)
+    
+    variables.done = True
+    return {'ok': 1}
+
+@app.route("/get-parameters")
+def getParameters():
+    print(variables.done)
+    return {
+        'var1': variables.var1Value,
+        'var2': variables.var2Value,
+        'var3': variables.var3Value,
+        'spineFlexionAngle' : variables.spineFlexionAngle,
+        'spineFlexionStat' : variables.spineFlexionStat,
+        'spineRotationAngle' : variables.spineRotationAngle,
+        'spineRotationStat' : variables.spineRotationStat,
+        'rightArmAngle' : variables.rightArmAngle,
+        'rightArmStat' : variables.rightArmStat,
+        'eulerTest':variables.eulerTest,
+        'eulerTestStat':variables.eulerTestStat,
+        'pelvic_tilt':variables.pelvic_tilt,
+        'im': './static/im/im.jpg',
+        'done' : variables.done
+    }
+
+if __name__ == "__main__":
+    # app.run(host='0.0.0.0', port=80)
+    app.run(debug=True)

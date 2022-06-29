@@ -1,0 +1,15 @@
+var1Value = ''
+var2Value = ''
+var3Value = ''
+var3Type = 'warning'
+im = None
+done = True
+spineFlexionAngle = ''
+spineFlexionStat = ''
+spineRotationAngle = ''
+spineRotationStat = ''
+rightArmAngle = ''
+rightArmStat = ''
+eulerTest = ''
+eulerTestStat =''
+pelvic_tilt =''
